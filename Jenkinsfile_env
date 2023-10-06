@@ -1,0 +1,83 @@
+pipeline {
+    agent any
+    environment {
+        PORT = "3000"
+        DEVELOPMENT = "true"
+        SERVER_URL = "http://dev-services.superzop.com/"
+        SERVER_URL_2 = "http://dev-services2.superzop.com/"
+        SUPPORT_PORTAL_URL = "http://localhost:3000"
+        SUPERZOP_ORDERING_BACKEND_URL = "http://dev-api.superzop.com"
+        EMAIL_ID = "saurabh.tank@superzop.com"
+        DB_HOST = "test-database.c3gliei4nw4w.ap-south-1.rds.amazonaws.com"
+        DB_USERNAME = "admin"
+        DB_PASSWORD = "$uperzop123"
+        DB_NAME = "superzop_ordering"
+        PAGINATE = "true"
+        PAGE_LIMIT = "1000"
+        TOKEN_KEY =  "fsgdgjfghfvhdgdcgyfdghgfhdgehgdshgf"
+        FIREBASE_DEVELOPMENT_CONFIG_PATH = "./superzop_ordering_development.json"
+        FIREBASE_PRODUCTION_CONFIG_PATH = "./superzop_ordering_live-7bca23f0a578.json"
+    }
+    stages {
+        stage('code_checkout') {
+            steps {
+                git branch: "$BranchName", credentialsId: 'gitlab-uase-pass', url: 'https://gitlab.com/superzop99/customer-support-portal.git'
+            }
+        }
+        stage("build docker image") {
+            steps {
+                sh "docker build -t 143941255581.dkr.ecr.ap-south-1.amazonaws.com/customer-support-portal:$BUILD_NUMBER ."
+            }
+        }
+        stage("login ecr and push image") {
+            steps{
+                sh "aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 143941255581.dkr.ecr.ap-south-1.amazonaws.com"
+                sh "docker push 143941255581.dkr.ecr.ap-south-1.amazonaws.com/customer-support-portal:$BUILD_NUMBER"
+            }
+        }
+        stage("Remove image from jenkins server"){  
+           steps {
+               sh "docker rmi 143941255581.dkr.ecr.ap-south-1.amazonaws.com/customer-support-portal:$BUILD_NUMBER"
+
+        }
+    }
+         stage ("update tag and push helm charts") {
+          steps {
+             script{
+                  git branch: 'master', credentialsId: 'gitlab-uase-pass', url: 'https://gitlab.com/superzop/dev-sz-helm-chart.git'
+                  sh "ls"
+                  sh 'sed -i "s/tag: .*/tag: ${BUILD_NUMBER}/" ./customer/values.yaml'
+                  sh "git add ./customer/values.yaml"
+                  sh "git status"
+                  sh 'git commit -m "CI/CD pipeline updated $IMAGE_TAG image to new image tag"'
+                  sh 'git config --global credential.helper cache'
+		          sh "git push origin master" 
+                }
+            }
+          
+        }
+        stage ("Deploy app in eks") {
+          steps {
+              sh "aws eks update-kubeconfig --name Dev-sz-eks-cluster"
+              sh "helm upgrade customer ./customer -n superzop"
+          }
+        }
+        
+    }
+    post {
+            success {
+            script {
+                slackSend(channel: "jenkins-notification", message: "Portal: Support | Dev | Branch: $BranchName successful")
+            }
+        }
+        failure {
+            script {
+                slackSend(channel: "jenkins-notification", message: "Portal: Support | Dev | Branch: $BranchName failure")
+            }
+        }
+        
+         always {
+            cleanWs()
+        }    
+    }
+} 

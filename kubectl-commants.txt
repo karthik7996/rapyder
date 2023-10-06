@@ -1,0 +1,61 @@
+kube command
+
+aws configure
+aws sts get-caller-identity
+aws eks update-kubeconfig --name Prod-sz-eks-cluster
+
+eksctl create iamidentitymapping --cluster Prod-sz-eks-cluster --arn arn:aws:iam::130971524264:role/RCSL2Role --group system:masters --username RCSL2Role
+
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=fz-qa-prod-EKS-Cluster
+
+kubectl get ns
+kubectl get pods -A
+kubectl get pods -n <namespance>
+kubectl get all -n <namespance>
+kubectl get all -n argocd
+kubectl delete <pod_name> -n <namespace>
+kuebctl create ns
+kubectl describe pod <pod_name>
+
+kubectl get ing -A
+kubectl delete ing nginx -n fz-qa
+
+kubectl get secret argocd-initial-admin-secret -n argocd -o yaml
+
+portforward command
+kubectl port-forward -n kong service/konga  8000:80
+
+git clone https://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h@github.com/fashinza/devops.git
+
+secret command:
+1)kubectl create secret generic fzencode -n fz-qa --from-file=fz-encode.yml
+2)kubectl -n fz-qa  get secrets
+3)kubectl describe secret test-secret -n test
+4)kubectl edit secret fzencode -n fz-qa
+
+
+1)client has provied HTTS clone URL. User name password
+2)to manage helm chat, helm chart edit  
+
+ helm list -A   --------list of all helm chart with 
+ 
+app cluster prometheus         app 2.39.1 , prometheus-15.16.1
+auth cluster                    app 2.39.1, prometheus-15.16.1 
+
+grafana-6.56.4                          9.5.2
+
+
+aws eks describe-cluster --name fz-qa-prod-EKS-Cluster --query "cluster.endpoint"
+
+argocd cluster add arn:aws:eks:ap-south-1:130971524264:cluster/fz-qa-prod-EKS-Cluster
+
+kubectl get secret argocd-initial-admin-secret -n argocd -o yaml
+
+
+d1o3VWpxT0RocHJaUXdZVQ==
+
+kubectl get secret argocd-initial-admin-secret -n argocd -o yaml
+
+eksctl create iamidentitymapping --cluster fz-qa-prod-EKS-Cluster --arn arn:aws:iam::130971524264:role/RCSL3Role --group system:masters --username RCSL3Role
+
+

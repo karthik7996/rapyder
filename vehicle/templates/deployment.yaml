@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.vehicle.meta.name }}
+  namespace: {{ .Values.vehicle.meta.namespace }}
+  labels:
+    app: {{ .Values.vehicle.meta.label }}
+spec:
+  replicas: {{ .Values.vehicle.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: {{ .Values.vehicle.rollingupdate.maxunavailable }}
+      maxSurge: {{ .Values.vehicle.rollingupdate.maxsurge }}
+  minReadySeconds: {{ .Values.vehicle.rollingupdate.minreadyseconds }}
+  selector:
+    matchLabels:
+      app: {{ .Values.vehicle.meta.label }}
+  template:
+    metadata:
+      name: {{ .Values.vehicle.meta.name }}
+      labels:
+        app: {{ .Values.vehicle.meta.label }}
+    spec:
+      containers:
+        - name: {{ .Values.vehicle.meta.name }}
+          image: "{{ .Values.vehicle.image.repository }}:{{ .Values.vehicle.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.vehicle.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.vehicle.ports.containerport}}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.vehicle.httpget.port }}
+            initialDelaySeconds: {{ .Values.vehicle.http.initialdelayseconds }}
+            timeoutSeconds: {{ .Values.vehicle.http.timeoutseconds }}
+            periodSeconds: {{ .Values.vehicle.http.periodseconds }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.vehicle.httpget.port }}
+            initialDelaySeconds: {{ .Values.vehicle.http.initialdelayseconds }}
+            timeoutSeconds: {{ .Values.vehicle.http.timeoutseconds }}
+            periodSeconds: {{ .Values.vehicle.http.periodseconds }}
+          resources:
+            requests:
+              cpu: {{ .Values.vehicle.requests.cpu }}
+              memory: {{ .Values.vehicle.requests.memory }}
+            limits:
+              cpu: {{ .Values.vehicle.limits.cpu }}
+              memory: {{ .Values.vehicle.limits.memory }}

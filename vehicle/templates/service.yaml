@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.vehicle.meta.name }}
+  namespace: {{ .Values.vehicle.meta.namespace }}
+  labels:
+    app: {{ .Values.vehicle.meta.label }}
+spec:
+  type: {{ .Values.vehicle.service.type }}
+  ports:
+    - port: {{ .Values.vehicle.service.port }}
+      targetPort: {{ .Values.vehicle.service.targetport }}
+      protocol: TCP
+      name: http
+
+
+
+  selector:
+    app: {{ .Values.vehicle.meta.label }}

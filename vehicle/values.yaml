@@ -1,0 +1,40 @@
+vehicle:
+  replicaCount: 1
+  meta:
+    name: vehicle-routing-backend
+    label: vehicle
+    namespace: superzop 
+  rollingupdate:
+    maxunavailable: 30%
+    maxsurge: 30%
+    minreadyseconds: 50
+  ports:
+    containerport: 5000
+  httpget:
+    port: 5000
+  http:
+    initialdelayseconds: 50
+    timeoutseconds: 2
+    periodseconds: 15
+  requests:
+    cpu: 512m
+    memory: 1Gi
+  limits:
+    cpu: 1048m
+    memory: 2Gi
+  https:
+    initialdelayseconds: 15
+    timeoutseconds: 2
+    periodseconds: 15
+  autoscaling:
+    minReplicas: 1
+    maxReplicas: 3
+    targetaverageutilization: 70
+  image:
+    repository: 143941255581.dkr.ecr.ap-south-1.amazonaws.com/vehicle-routing-prod
+    pullPolicy: Always 
+    tag: 3
+  service:
+    type: ClusterIP
+    port: 80
+    targetport: 5000

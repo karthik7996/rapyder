@@ -1,0 +1,116 @@
+Prometheus and Grafana setup in EKS cluster:
+--------------------------------------------
+
+Reference:
+Github - https://github.com/RekhuGopal/PythonHacks/tree/main/AWSBoto3Hacks/Monitoring-AWS-EKS-with-Prometheus-Grafana
+Youtube - https://youtu.be/0S0h7ti_Hl0
+Grafana Dashboard selection - https://grafana.com/grafana/dashboards/?plcmt=footer&search=cluster
+Grafana Dashboard - https://grafana.com/grafana/dashboards/12740 , KR- https://grafana.com/grafana/dashboards/13770
+
+1) Add prometheus Helm repo 
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+2) Add grafana Helm repo
+helm repo add grafana https://grafana.github.io/helm-charts
+
+3) Deploy Prometheus
+kubectl create namespace prometheus
+helm install prometheus prometheus-community/prometheus --namespace prometheus --set alertmanager.persistentVolume.storageClass="gp2" --set server.persistentVolume.storageClass="gp2"
+	
+4) Check prometheus components deployed as expected
+kubectl get all -n prometheus
+
+
+5) Do kubectl port forwarding from your local machine terminal
+kubectl port-forward -n prometheus deploy/prometheus-server 8080:9090
+
+6) Create a grafana.yaml file and paste below content
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      url: http://prometheus-server.prometheus.svc.cluster.local
+      access: proxy
+      isDefault: true
+
+7) Deploy Grafana using below command, it used above grafana.yaml file and password is mentioned in the below command
+kubectl create namespace grafana
+helm install grafana grafana/grafana --namespace grafana --set persistence.storageClassName="gp2" --set persistence.enabled=true --set adminPassword='EKS!sAWSome' --values ./grafana.yaml --set service.type=LoadBalancer
+
+8) Check if Grafana is deployed
+kubectl get all -n grafana
+
+9) Get Grafana ELB URL using this command
+kubectl get svc -n grafana grafana -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+or
+kubectl get svc -n grafana
+
+10) Login to the grafana dashboard using username and password
+ username: admin
+ password: EKS!sAWSome
+ 
+11) Import default metrics in the Grafana dashboard
+Click on + icon and select import, now enter the default metrics number ID 12740 and click on 'Load'
+Under prometheus dropdown select 'prometheus(default)' and select 'Import'
+
+or Upload a custom metrics json file
+
+-> Used 12740, this dashboard shows clear data of namespaces and pod.
+
+# Access dashboard IDs
+12740/13770/3119/6417
+
+Note: To get grafana password use below command
+      kubectl get secret --namespace grafana grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+      
+      
+      
+Application load balancer for Grafana:
+--------------------------------------
+
+-> Above steps deploy classic load balancer for grafana, if you want to deploy Application load balancer for grafana or use existing ALB load balancer then follow below steps
+
+1) In step 7, while deploying grafana set the type as NodePort using below command(--set service.type=LoadBalancer)
+
+helm install grafana grafana/grafana --namespace grafana --set persistence.storageClassName="gp2" --set persistence.enabled=true --set adminPassword='EKS!sAWSome' --values ./grafana.yaml --set service.type=ClusterIP
+
+2) Create grafana-ingress.yaml file and paste below content
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: "grafana"
+  namespace: "grafana"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+  labels:
+    app.kubernetes.io/instance: grafana
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/version: 8.2.0
+    helm.sh/chart: grafana-6.16.13
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: "grafana"
+              servicePort: 80
+
+
+3) Deploy grafana ingress file using below command
+kubectl apply -f grafana-ingress.yaml
+
+4) Now try to access the grafana dashboard using load balancer endpoint
+kubectl get ing -n grafana
+
+Note: Above ingress file deploy new ALB, if you want to use same ALB which is already created then use groupname annotation in ingress controller
+        alb.ingress.kubernetes.io/group.name: devialb
+	
+Note: Above ingress file does not have any hostname, if you have any host name and want to access grafana dashboard using that hostname, then you can add that host name in the grafana ingress file and map the load balancer endpoint in the DNS provider.
+

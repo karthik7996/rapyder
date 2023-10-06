@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: superzop
+  name: vehicle-routing-backend
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+      #alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+      #alb.ingress.kubernetes.io/ssl-redirect: '443'
+      #  alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-south-1:143941255581:certificate/691977f7-f019-4d23-8dcf-f6d406c05528
+    alb.ingress.kubernetes.io/group.name: superzop
+spec:
+  rules:
+    - host: "dev-routing.superzop.com"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vehicle-routing-backend
+                port:
+                  number: 80

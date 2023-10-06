@@ -1,0 +1,186 @@
+apiVersion: v1
+data:
+  alerting_rules.yml: |
+    groups:
+    - name: Alerts
+      rules:
+      - alert: Deployment at 0 Replicas
+        annotations:
+          summary: Deployment is currently having no pods running
+          description: "Check (deployment,namespace)"
+        expr: |
+          sum(kube_deployment_status_replicas{pod_template_hash=""}) by (deployment,namespace)  < 1
+        for: 1m
+        labels:
+          severity: warning
+      - alert: HostOutOfMemory
+        expr: node_memory_MemAvailable / node_memory_MemTotal * 100 < 25
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Host out of memory"
+          description: "Node memory is filling up.Check {{ $labels.kubernetes_io_hostname }}"
+
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          description: '{{ $labels.kubernetes_io_hostname }} node is Down.'
+          summary: 'Instance down'
+
+      - alert: Service Port Down
+        expr: probe_success{instance=~".*"} != 1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Service Port Down
+          description: "Service Port Down {{ $labels.instance }}"
+
+      - alert: High Node Disk Usage
+        annotations:
+          summary: Node has more than 85% disk used. Plan Capacity.
+          description: "{{ $labels.kubernetes_io_hostname }} Node 85% Disk usage reached"
+        expr: |
+          (sum(container_fs_usage_bytes{device=~"^/dev/[sv]d[a-z][1-9]$",id="/",container!="POD"}) by (kubernetes_io_hostname) /
+          sum(container_fs_limit_bytes{container!="POD",device=~"^/dev/[sv]d[a-z][1-9]$",id="/"}) by (kubernetes_io_hostname)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+
+      - alert: High Node CPU Usage
+        annotations:
+          summary: Node has more than 80% allocatable cpu used. Plan Capacity.
+          description: "{{ $labels.kubernetes_io_hostname }} Node using more than 80% CPU"
+        expr: |
+          (sum(rate(container_cpu_usage_seconds_total{id="/",
+          container!="POD"}[1m])) by (kubernetes_io_hostname) / sum(machine_cpu_cores) by (kubernetes_io_hostname)  * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+
+      - alert: KubernetesPodNotHealthy
+        expr: min_over_time(sum by (namespace, pod) (kube_pod_status_phase{phase=~"Pending|Unknown|Failed"})[5m:1m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: Kubernetes Pod not healthy (instance {{ $labels.instance }})
+          description: "Pod has been in a non-ready state for longer than 5 minutes.\n  V"
+
+      - alert: KubernetesPodCrashLooping
+        expr: increase(kube_pod_container_status_restarts_total[1m]) > 3
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Kubernetes pod crash looping (instance {{ $labels.instance }})
+          description: "Pod {{ $labels.pod }} is crash looping\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: HPA Scaling Limited
+        annotations:
+          summary: HPA named  in  namespace has reached scaling limited state
+          description: "HPA {{ $labels.hpa }} is reached max scale count\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+        expr: |
+          (sum(kube_hpa_status_condition{condition="ScalingLimited",status="true"}) by (hpa,namespace)) == 1
+        for: 1m
+        labels:
+          severity: warning
+
+      - alert: HPA at MaxCapacity
+        annotations:
+          summary: HPA named in namespace is running at Max Capacity
+          description: "HPA {{ $labels.hpa }} is reached max scale count\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+        expr: |
+          ((sum(kube_hpa_spec_max_replicas) by (hpa,namespace)) - (sum(kube_hpa_status_current_replicas) by (hpa,namespace))) == 0
+        for: 1m
+        labels:
+          severity: warning
+      - alert: High Persistent Volume Usage
+        annotations:
+          summary: Persistent Volume named in is using more than 60% used.
+          description: "Check http://k8s-monitori-promethe-4af9f983e0-1253577561.ap-south-1.elb.amazonaws.com/alerts"
+        expr: |
+          ((((sum(kubelet_volume_stats_used_bytes{})  by  (namespace,persistentvolumeclaim))  / (sum(kubelet_volume_stats_capacity_bytes{}) by
+          (namespace,persistentvolumeclaim)))*100) < +Inf ) > 60
+        for: 5m
+        labels:
+          severity: warning
+
+      - alert: ClusterAutoscalerUnschedulablePods
+        expr: cluster_autoscaler_unschedulable_pods_count{service="aws-system"} > 0
+        for: 20m
+        labels:
+          severity: warning
+        annotations:
+          summary: Cluster Autoscaler has  unschedulable pods
+          description: "Pod {{ $labels.pod }} is unschedulabe pod\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: ClusterAutoscalerNotSafeToScale
+        expr: cluster_autoscaler_cluster_safe_to_autoscale{service="aws-system"} !=1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Cluster Autoscaler is reporting that the cluster is not ready for scaling
+          description: "Pod {{ $labels.pod }} is not ready\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+      - alert: Container restarted
+        annotations:
+          summary: Container named in was restarted
+          description: "Pod {{ $labels.pod }} is restarted\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+        expr: |
+          sum(increase(kube_pod_container_status_restarts_total{namespace!="kube-system",pod_template_hash=""}[1m])) by (pod,namespace,container) > 0
+        for: 0m
+        labels:
+          severity: warning
+
+      - alert: High Memory Usage of Container
+        annotations:
+          summary: Container named  in is using more than 80% of Memory Limit
+          description: "Pod {{ $labels.pod }} is using high memory\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+        expr: |
+          ((( sum(container_memory_working_set_bytes{image!="",container!="POD", namespace!="kube-system"}) by (namespace,container,pod)  /
+          sum(container_spec_memory_limit_bytes{image!="",container!="POD",namespace!="kube-system"}) by (namespace,container,pod) ) * 100 ) < +Inf ) > 80
+        for: 5m
+        labels:
+          severity: warning
+      - alert: HostMemoryUnderMemoryPressure
+        expr: rate(node_vmstat_pgmajfault[1m]) > 1000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Host memory under memory pressure (instance {{ $labels.instance }})
+          description: "The node is under heavy memory pressure. High rate of major page faults\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      - alert: CronJobStatusFailed
+        expr: |
+          job_cronjob:kube_job_status_failed:sum
+          * ON(cronjob) GROUP_RIGHT()
+          kube_cronjob_labels
+          > 0
+        for: 1m
+        annotations:
+          description: '{{ $labels.cronjob }} last run has failed {{ $value }} times.'
+      - alert: Service Down
+        expr: kube_endpoint_ports{namespace=~"bsnl",port_name=~".*"} != 1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Service Down (instance {{ $labels.instance }})
+          description: "Service has disappeared. An Pod might be crashed.\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+      - alert: ContainerCpuUsage
+        expr: (sum(rate(container_cpu_usage_seconds_total{name!=""}[3m])) BY (instance, name) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: Container CPU usage (instance {{ $labels.instance }})
+          description: "Container CPU usage is above 80%\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+  alerts: |
+    {}
+  allow-snippet-annotations: "false"
