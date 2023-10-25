@@ -149,6 +149,9 @@ Cluster Autoscaler setup:
 
 https://docs.aws.amazon.com/eks/latest/userguide/cluster-autoscaler.html
 
+##https://raw.githubusercontent.com/kubernetes/autoscaler/master/cluster-autoscaler/cloudprovider/aws/examples/cluster-autoscaler-autodiscover.yaml
+
+
 1) Create a file(cluster-autoscalar.yaml). Change the cluster name at last in the configuration file.
 
 apiVersion: v1
