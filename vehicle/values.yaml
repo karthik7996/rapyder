@@ -33,7 +33,7 @@ vehicle:
   image:
     repository: 143941255581.dkr.ecr.ap-south-1.amazonaws.com/vehicle-routing-prod
     pullPolicy: Always 
-    tag: 83813
+    tag: 8883813
   service:
     type: ClusterIP
     port: 80
