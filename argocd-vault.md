@@ -75,5 +75,28 @@ data:
 ```
 ### NOTE: In case of a ClusterSecretStore, Be sure to provide namespace for tokenSecretRef with the namespace of the secret that we just created.
 * Then create a simple k/v pair at path secret/dev
+'''yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: vault-example
+  namespace: allocation
+spec:
+  refreshInterval: "15s"
+  secretStoreRef:
+    name: vault-backend
+    kind: SecretStore
+  target:
+    name: allocation-secret
+  data:
+  - secretKey: INTERNAL_SHARED_SECRET
+    remoteRef:
+      key: kv/secret/{{ .Values.allocation.vault.env }}/common
+      property: INTERNAL_SHARED_SECRET
+  - secretKey: test
+    remoteRef:
+      key: kv/secret/{{ .Values.allocation.vault.env }}/common
+      property: test
+'''    
 * Now create a ExternalSecret that uses the above SecretStore:
 
