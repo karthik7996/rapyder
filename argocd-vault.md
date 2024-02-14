@@ -8,50 +8,48 @@
 * kubectl configured to access your cluster
 ## Step 1: Add the Argo CD Helm repository
 #### helm repo add argo https://argoproj.github.io/argo-helm
-*Step 2: Install Argo CD using Helm
-#### helm install argocd argo/argo-cd
-This will install Argo CD in the default namespace. If you want to install it in a different namespace, you can use the --namespace flag.
-Access the Argo CD dashboard
-To access the Argo CD dashboard, we need to get the URL of the dashboard. To do this,
-Create the ingress for the argo cd service and use the domain name to access it.
-Configuring the a Bitbucket repository
-To deploy applications using Argo CD, you need to set up a Git repository that contains your application source code and deployment manifests. You can use any Git hosting service, such as  Bitbucket, for this purpose.
-Navigate to the settings and click on connect repo, provide the requried details like name main fist file ssh key etc.
+* Step 2: Install Argo CD using Helm
+## helm install argocd argo/argo-cd
+* This will install Argo CD in the default namespace. If you want to install it in a different namespace, you can use the --namespace flag.
+* Access the Argo CD dashboard
+* To access the Argo CD dashboard, we need to get the URL of the dashboard. To do this,
+* Create the ingress for the argo cd service and use the domain name to access it.
+* Configuring the a Bitbucket repository
+* To deploy applications using Argo CD, you need to set up a Git repository that contains your application source code and deployment manifests. You can use any Git hosting service, such as  Bitbucket, for this purpose.
+* Navigate to the settings and click on connect repo, provide the requried details like name main fist file ssh key etc.
 
 
 
 
 
 
-One you added the ssh and it will successful connect to Bit bucket.
+* One you added the ssh and it will successful connect to Bit bucket.
 
 
 #### Creating an application in Argo CD
  # you can now create your first application in Argo CD. To do this, follow these steps:
 
-*In the Argo CD web UI, click on the + New App button.
-*In the Repository URL field, enter the URL of your Git repository.
-*In the Revision field, enter the branch  of the revision you want to deploy.
-*In the Destination section, select the namespace and cluster where you want to deploy the application.
-*In the Sync Options section, you can specify additional options for the application, such as the resource filter and sync policy
-*Click on the Create button to create the application.
-# Once the application is created, Argo CD will automatically sync the application to the destination namespace and deploy it. You can view the status of the deployment and any errors in the Overview tab of the application page.
+* In the Argo CD web UI, click on the + New App button.
+* In the Repository URL field, enter the URL of your Git repository.
+* In the Revision field, enter the branch  of the revision you want to deploy.
+* In the Destination section, select the namespace and cluster where you want to deploy the application.
+* In the Sync Options section, you can specify additional options for the application, such as the resource filter and sync policy
+* Click on the Create button to create the application.
+## Once the application is created, Argo CD will automatically sync the application to the destination namespace and deploy it. You can view the status of the deployment and any errors in the Overview tab of the application page.
 
-Deleting an application
-To delete an application, click on the Delete button in the Overview tab of the application page. This will delete the application from Argo CD and also delete all the resources associated with the application in the destination namespace.
 
 #### Configuring the k8s to HashiCorp Vault
-Step 1: Add the vault Helm repository
+* Step 1: Add the vault Helm repository
 First, we need to add the vault  Helm repository to our local machine:
-helm repo add external-secrets https://charts.external-secrets.io
-*Step 2: Install vault using Helm
-Create external secret using below command with required name space.
-helm install external-secrets external-secrets/external-secrets -n external-secrets --create-namespace --set installCRDs=true
+### helm repo add external-secrets https://charts.external-secrets.io
+* Step 2: Install vault using Helm
+* Create external secret using below command with required name space.
+### helm install external-secrets external-secrets/external-secrets -n external-secrets --create-namespace --set installCRDs=true
 
-Step 3: First, create a SecretStore with a vault backend
- Add the vault url with token to connect k8s with vault, create the vault secret stor in all the namespace required
+### Step 3: First, create a SecretStore with a vault backend
+ * Add the vault url with token to connect k8s with vault, create the vault secret stor in all the namespace required
 
-NOTE: In case of a ClusterSecretStore, Be sure to provide namespace for tokenSecretRef with the namespace of the secret that we just created.
-Then create a simple k/v pair at path secret/dev
-Now create a ExternalSecret that uses the above SecretStore:
+### NOTE: In case of a ClusterSecretStore, Be sure to provide namespace for tokenSecretRef with the namespace of the secret that we just created.
+* Then create a simple k/v pair at path secret/dev
+* Now create a ExternalSecret that uses the above SecretStore:
 
