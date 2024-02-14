@@ -1,15 +1,15 @@
-####Installing Argo CD using helm
+#### Installing Argo CD using helm
 
-#Argo CD is a powerful continuous delivery tool that helps developers automate the deployment process of their applications
+# Argo CD is a powerful continuous delivery tool that helps developers automate the deployment process of their applications
 
-#Before we begin, make sure you have the following prerequisites:
+# Before we begin, make sure you have the following prerequisites:
 *A Kubernetes cluster (can be local or remote)
 *Helm installed on your local machine
 *kubectl configured to access your cluster
-#Step 1: Add the Argo CD Helm repository
-##helm repo add argo https://argoproj.github.io/argo-helm
+# Step 1: Add the Argo CD Helm repository
+## helm repo add argo https://argoproj.github.io/argo-helm
 *Step 2: Install Argo CD using Helm
-####helm install argocd argo/argo-cd
+#### helm install argocd argo/argo-cd
 This will install Argo CD in the default namespace. If you want to install it in a different namespace, you can use the --namespace flag.
 Access the Argo CD dashboard
 To access the Argo CD dashboard, we need to get the URL of the dashboard. To do this,
@@ -26,25 +26,25 @@ Navigate to the settings and click on connect repo, provide the requried details
 One you added the ssh and it will successful connect to Bit bucket.
 
 
-Creating an application in Argo CD
- you can now create your first application in Argo CD. To do this, follow these steps:
+#### Creating an application in Argo CD
+ # you can now create your first application in Argo CD. To do this, follow these steps:
 
-1. In the Argo CD web UI, click on the + New App button.
-2.In the Repository URL field, enter the URL of your Git repository.
-3.In the Revision field, enter the branch  of the revision you want to deploy.
-4.In the Destination section, select the namespace and cluster where you want to deploy the application.
-5.In the Sync Options section, you can specify additional options for the application, such as the resource filter and sync policy
-6. Click on the Create button to create the application.
-Once the application is created, Argo CD will automatically sync the application to the destination namespace and deploy it. You can view the status of the deployment and any errors in the Overview tab of the application page.
+*In the Argo CD web UI, click on the + New App button.
+*In the Repository URL field, enter the URL of your Git repository.
+*In the Revision field, enter the branch  of the revision you want to deploy.
+*In the Destination section, select the namespace and cluster where you want to deploy the application.
+*In the Sync Options section, you can specify additional options for the application, such as the resource filter and sync policy
+*Click on the Create button to create the application.
+# Once the application is created, Argo CD will automatically sync the application to the destination namespace and deploy it. You can view the status of the deployment and any errors in the Overview tab of the application page.
 
 Deleting an application
 To delete an application, click on the Delete button in the Overview tab of the application page. This will delete the application from Argo CD and also delete all the resources associated with the application in the destination namespace.
 
-Configuring the k8s to HashiCorp Vault
+#### Configuring the k8s to HashiCorp Vault
 Step 1: Add the vault Helm repository
 First, we need to add the vault  Helm repository to our local machine:
 helm repo add external-secrets https://charts.external-secrets.io
-Step 2: Install vault using Helm
+*Step 2: Install vault using Helm
 Create external secret using below command with required name space.
 helm install external-secrets external-secrets/external-secrets -n external-secrets --create-namespace --set installCRDs=true
 
