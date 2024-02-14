@@ -48,7 +48,7 @@ First, we need to add the vault  Helm repository to our local machine:
 
 ### Step 3: First, create a SecretStore with a vault backend
  * Add the vault url with token to connect k8s with vault, create the vault secret stor in all the namespace required
-  Printf('''
+```yaml
 apiVersion: external-secrets.io/v1beta1
 kind: SecretStore
 metadata:
@@ -65,14 +65,14 @@ spec:
         tokenSecretRef:
           name: "vault-token"
           key: "token"
+---
 apiVersion: v1
 kind: Secret
 metadata:
   name: vault-token
 data:
   token: aHZzLkXXXXXXXXXXXXXXXXXXXXXXXX
-''' )
-
+'''
 ### NOTE: In case of a ClusterSecretStore, Be sure to provide namespace for tokenSecretRef with the namespace of the secret that we just created.
 * Then create a simple k/v pair at path secret/dev
 * Now create a ExternalSecret that uses the above SecretStore:
