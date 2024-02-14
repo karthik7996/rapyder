@@ -1,13 +1,13 @@
-#### Installing Argo CD using helm
+## Installing Argo CD using helm
 
-# Argo CD is a powerful continuous delivery tool that helps developers automate the deployment process of their applications
+#### Argo CD is a powerful continuous delivery tool that helps developers automate the deployment process of their applications
 
-# Before we begin, make sure you have the following prerequisites:
-*A Kubernetes cluster (can be local or remote)
-*Helm installed on your local machine
-*kubectl configured to access your cluster
-# Step 1: Add the Argo CD Helm repository
-## helm repo add argo https://argoproj.github.io/argo-helm
+#### Before we begin, make sure you have the following prerequisites:
+*A Kubernetes cluster (can be local or remote)
+*Helm installed on your local machine
+*kubectl configured to access your cluster
+## Step 1: Add the Argo CD Helm repository
+#### helm repo add argo https://argoproj.github.io/argo-helm
 *Step 2: Install Argo CD using Helm
 #### helm install argocd argo/argo-cd
 This will install Argo CD in the default namespace. If you want to install it in a different namespace, you can use the --namespace flag.
