@@ -48,6 +48,31 @@ First, we need to add the vault  Helm repository to our local machine:
 
 ### Step 3: First, create a SecretStore with a vault backend
  * Add the vault url with token to connect k8s with vault, create the vault secret stor in all the namespace required
+  Printf()
+'''   apiVersion: external-secrets.io/v1beta1
+kind: SecretStore
+metadata:
+  name: vault-backend
+spec:
+  provider:
+    vault:
+      server: "http://XXXXXXXXXX:8200/"
+      path: "kv"
+      version: "v1"
+      auth:
+        # points to a secret that contains a vault token
+        # https://www.vaultproject.io/docs/auth/token
+        tokenSecretRef:
+          name: "vault-token"
+          key: "token"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: vault-token
+data:
+  token: aHZzLkXXXXXXXXXXXXXXXXXXXXXXXX  '''
+
 
 ### NOTE: In case of a ClusterSecretStore, Be sure to provide namespace for tokenSecretRef with the namespace of the secret that we just created.
 * Then create a simple k/v pair at path secret/dev
