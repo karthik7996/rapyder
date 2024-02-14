@@ -65,7 +65,6 @@ spec:
         tokenSecretRef:
           name: "vault-token"
           key: "token"
----
 apiVersion: v1
 kind: Secret
 metadata:
