@@ -75,7 +75,7 @@ data:
 ```
 ### NOTE: In case of a ClusterSecretStore, Be sure to provide namespace for tokenSecretRef with the namespace of the secret that we just created.
 * Then create a simple k/v pair at path secret/dev
-'''yaml
+```yaml
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
@@ -97,6 +97,6 @@ spec:
     remoteRef:
       key: kv/secret/{{ .Values.allocation.vault.env }}/common
       property: test
-'''    
+```   
 * Now create a ExternalSecret that uses the above SecretStore:
 
